@@ -21,47 +21,47 @@ namespace Sample1
             }
         }
 
-        static void Main(string[] args)
+        static void Main(string[] args) => exe(() =>
         {
-            exe(() =>
-            {
-                Console.WriteLine("Hello World!");
+            Console.WriteLine("Hello World!");
 
-                // project path
-                Console.WriteLine(Directory.GetCurrentDirectory());
-                // bin path
-                Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
+            // project path
+            Console.WriteLine(Directory.GetCurrentDirectory());
+            // bin path
+            Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
 
-                // method 1
-                //var builder = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile("sample1.json");
-                // or
-                // method 2
-                var builder = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile(cfg =>
+            // method 1
+            //var builder = new ConfigurationBuilder().SetBasePath(AppDomain.CurrentDomain.BaseDirectory).AddJsonFile("sample1.json");
+            // or
+            // method 2
+            var builder =
+                new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile(cfg =>
                 {
                     cfg.Path = "sample1.json";
                     cfg.ReloadOnChange = true;
                     cfg.Optional = false;
                 });
 
-                var config = builder.Build();
+            var config = builder.Build();
 
-                Console.WriteLine(config["Version"]);
-                Console.WriteLine(config["Host:Key1"]);
-                Console.WriteLine(config["Host:Key2:Key21"]);
-                Console.WriteLine(config["Host:Key2:Key2s"]);
+            Console.WriteLine(config["Version"]);
+            Console.WriteLine(config["Host:Key1"]);
+            Console.WriteLine(config["Host:Key2:Key21"]);
+            Console.WriteLine(config["Host:Key2:Key2s"]);
 
-                // print all
-                foreach (var kv in config.AsEnumerable())
-                {
-                    Console.WriteLine($"{kv.Key} - {kv.Value}");
-                }
+            // print all
+            foreach (var kv in config.AsEnumerable())
+            {
+                Console.WriteLine($"{kv.Key} - {kv.Value}");
+            }
 
-                // use binder
-                var k2 = new Key2Model();
-                config.Bind("Host:Key2", k2);
-                Console.WriteLine(JsonConvert.SerializeObject(k2));
-            });
-        }
+            // use binder
+            var k2 = new Key2Model();
+            config.Bind("Host:Key2", k2);
+            Console.WriteLine(JsonConvert.SerializeObject(k2));
+        });
     }
 
     public class Key2Model
