@@ -61,6 +61,10 @@ namespace Sample1
             var k2 = new Key2Model();
             config.Bind("Host:Key2", k2);
             Console.WriteLine(JsonConvert.SerializeObject(k2));
+
+            Console.ReadLine();
+
+            Console.WriteLine(JsonConvert.SerializeObject(k2));
         });
     }
 
