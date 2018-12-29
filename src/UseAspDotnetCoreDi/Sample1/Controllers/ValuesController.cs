@@ -6,10 +6,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Sample1.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/{name}/[controller]")]
     [ApiController]
     public class ValuesController : ControllerBase
     {
+        public ValuesController(IEnumerable<ITest> tests, RouteNameSettings rms)
+        {
+            //tests?.ToList().ForEach(p => p.Print());
+
+            //tests.Get("test1").Print();
+            //tests.Get("Test1").Print();
+
+            //tests.Get(rms.Name).Print();
+        }
+
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
