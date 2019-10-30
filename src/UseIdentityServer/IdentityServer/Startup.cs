@@ -28,7 +28,9 @@ namespace IdentityServer
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApis())
                 .AddInMemoryClients(Config.GetClients())
-                .AddTestUsers(Config.GetUsers());
+                .AddTestUsers(Config.GetUsers())
+                .AddResourceOwnerValidator<CustomResourceOwnerPasswordValidator>()
+                .AddProfileService<CustomProfileService>();
 
             if (Environment.IsDevelopment())
             {

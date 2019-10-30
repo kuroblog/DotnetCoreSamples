@@ -47,8 +47,10 @@ namespace Client
 
             var tokenEndpoint = Task.Run(() => GetTokenEndpointAsync()).Result;
 
-            // var accessToken = Task.Run(() => GetTokenByClientCredentialsAsync(tokenEndpoint)).Result;
+            var accessToken1 = Task.Run(() => GetTokenByClientCredentialsAsync(tokenEndpoint)).Result;
             var accessToken = Task.Run(() => GetTokenByPasswordAsync(tokenEndpoint)).Result;
+
+            var accessToken2 = Task.Run(() => GetTokenByPasswordAsync(tokenEndpoint, userName: "bob", password: "1qaz2wsx")).Result;
 
             var content = Task.Run(() => CallApiAsync(accessToken)).Result;
         }
