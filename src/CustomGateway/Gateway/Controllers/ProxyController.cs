@@ -26,6 +26,7 @@ namespace Gateway.Controllers
         {
             this.config = config;
             serviceSettings = this.config?.GetServiceSettings();
+            
             this.httpClientFactory = httpClientFactory;
         }
 
@@ -37,7 +38,9 @@ namespace Gateway.Controllers
             {
                 serviceSettings
             };
+
             var result = StatusCode(StatusCodes.Status200OK, printResult);
+            
             return await Task.FromResult(result);
         }
 
@@ -58,16 +61,13 @@ namespace Gateway.Controllers
             try
             {
                 var proxySettings = serviceSettings.GetServiceSetting(serviceName);
+
                 var proxyRequest = new HttpRequestMessage
                 {
                     RequestUri = new Uri(Path.Combine(proxySettings.Host, servicePath, Request.QueryString.Value)),
                     Method = method
                 };
-                if (Request.Body != null && Request.Body.CanRead)
-                {
-                    var bodyString = await Request.GetRawBodyStringAsync();
-                    proxyRequest.Content = new StringContent(bodyString, Encoding.UTF8, Request.ContentType);
-                }
+
                 proxySettings.HeadFilters?.ToList().ForEach(setting =>
                 {
                     if (Request.Headers.TryGetValue(setting.Key, out StringValues originalHeadValues))
@@ -79,8 +79,17 @@ namespace Gateway.Controllers
                         proxyRequest.Headers.TryAddWithoutValidation(setting.Key, setting.Value);
                     }
                 });
+
+                if (Request.Body != null && Request.Body.CanRead)
+                {
+                    var bodyString = await Request.GetRawBodyStringAsync();
+                    proxyRequest.Content = new StringContent(bodyString, Encoding.UTF8, Request.ContentType);
+                }
+
                 var client = httpClientFactory.CreateClient();
+
                 var response = await client.SendAsync(proxyRequest);
+
                 return new ProxyResult(response);
             }
             catch (Exception ex)
@@ -111,6 +120,7 @@ namespace Gateway
         public async Task ExecuteResultAsync(ActionContext context)
         {
             context.HttpContext.Response.StatusCode = (int)response.StatusCode;
+
             if (response.Content.Headers.ContentType != null)
             {
                 context.HttpContext.Response.ContentType = response.Content.Headers.ContentType.MediaType;

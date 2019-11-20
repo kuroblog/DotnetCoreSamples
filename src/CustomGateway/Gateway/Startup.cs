@@ -15,23 +15,18 @@ namespace Gateway
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        public Startup(IConfiguration configuration) => Configuration = configuration;
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
-        {
+        public void ConfigureServices(IServiceCollection services) =>
             services
                 .AddSingleton(Configuration)
                 .AddHttpClient()
                 .AddCustom()
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -65,6 +60,7 @@ namespace Gateway
             {
                 encoding = Encoding.UTF8;
             }
+
             request.Body.Flush();
             using (var reader = new StreamReader(request.Body, encoding))
             {
@@ -78,11 +74,13 @@ namespace Gateway
             {
                 errorMessages = new List<string>();
             }
+
             errorMessages.Add(error.Message);
             if (error.InnerException != null)
             {
                 GetErrorMessages(error.InnerException, errorMessages);
             }
+            
             return errorMessages.ToArray();
         }
 
