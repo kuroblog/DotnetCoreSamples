@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Gateway.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -80,12 +81,13 @@ namespace Gateway
             {
                 GetErrorMessages(error.InnerException, errorMessages);
             }
-            
+
             return errorMessages.ToArray();
         }
 
         public static string GetFullErrorMessage(this Exception error, string separator) => string.Join(separator, error.GetErrorMessages());
 
-        public static IServiceCollection AddCustom(this IServiceCollection services) => services;
+        public static IServiceCollection AddCustom(this IServiceCollection services) =>
+            services.AddScoped<IProxyService, ProxyService>();
     }
 }
