@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Gateway.Services;
@@ -11,23 +13,83 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Polly;
 
 namespace Gateway
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration) => Configuration = configuration;
+        // ILoggerFactory in dotent core 2.x.x is Successful
+        // in 3.x.x is error
+        public Startup(IConfiguration configuration, ILoggerFactory loggerFactory)
+        {
+            Configuration = configuration;
+
+            // dotnet core 2.x.x
+            logger = loggerFactory.CreateLogger<Startup>();
+        }
+
+        private ILogger<Startup> logger;
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services) =>
+        public void ConfigureServices(IServiceCollection services)
+        {
+            // this is ILoggerFactory on dotnet core 3.x.x
+            // var logger = LoggerFactory.Create(o => o.AddDebug()).CreateLogger<Startup>();
+
+            var fallbackResponse = new HttpResponseMessage
+            {
+                Content = new StringContent("fallback"),
+                StatusCode = HttpStatusCode.TooManyRequests
+            };
+
+            services.AddHttpClient("mock", o =>
+            {
+                o.BaseAddress = new Uri("http://localhost:5009");
+            })
+            .AddPolicyHandler(
+                Policy<HttpResponseMessage>
+                    .Handle<Exception>()
+                    .FallbackAsync(new Func<HttpResponseMessage>(() =>
+                    {
+                        // the example can be return cu
+                        return fallbackResponse;
+                    }).Invoke(), async o =>
+                     {
+                         logger.LogWarning($"fallback here {o.Exception.Message}");
+
+                         await Task.CompletedTask;
+                     }))
+            .AddPolicyHandler(
+                Policy<HttpResponseMessage>
+                    .Handle<Exception>()
+                    .CircuitBreakerAsync(
+                        2,
+                        TimeSpan.FromSeconds(4),
+                        async (rs, ts) =>
+                        {
+                            logger.LogWarning($"break here {ts.TotalMilliseconds}");
+
+                            await Task.CompletedTask;
+                        },
+                        async () =>
+                        {
+                            logger.LogWarning($"reset here");
+
+                            await Task.CompletedTask;
+                        }))
+            .AddPolicyHandler(Policy.TimeoutAsync<HttpResponseMessage>(1));
+
             services
                 .AddSingleton(Configuration)
                 .AddHttpClient()
                 .AddCustom()
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+        }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

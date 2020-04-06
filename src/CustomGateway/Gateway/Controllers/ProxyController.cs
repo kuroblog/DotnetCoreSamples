@@ -87,7 +87,7 @@ namespace Gateway.Controllers
                     proxyRequest.Content = new StringContent(bodyString, Encoding.UTF8, Request.ContentType);
                 }
 
-                var client = httpClientFactory.CreateClient();
+                var client = httpClientFactory.CreateClient("mock");
 
                 var response = await client.SendAsync(proxyRequest);
 
@@ -239,7 +239,7 @@ namespace Gateway.Services
         {
             var newRequest = await GetServiceRequestAsync(serviceInfo);
 
-            var client = httpClientFactory.CreateClient();
+            var client = httpClientFactory.CreateClient("mock");
 
             var response = await client.SendAsync(newRequest);
 
